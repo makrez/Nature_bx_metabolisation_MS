@@ -1,0 +1,22 @@
+{
+  "DataFolder" : "data/",
+  "SampleSheet": "genomes.txt",
+  "kmer_tempdir": "/data/projects/p776_comparative_genomics_of_benzoxazinoid_transformation_in_Microbacteria/pipelines/kmer_microbacteria/results/01_kmercounting/",
+  "complete_extension": ".fna",
+  "k_value": 21,
+  "kmc" : {
+    "kmc_threads" : 4,
+    "kmc_hours": 1,
+    "kmc_mem_mb": 36000
+  },
+  "python_threads": 2,
+  "python_mem_mb": 8000,
+  "python_hours": 2,
+  "kmer_score_threads": 15,
+  "kmer_score_mem_mb": 1200000,
+  "kmer_score_hours": 150,
+  "short_commands_threads": 16,
+  "short_commands_hours": 12,
+  "short_commands_mb": 140000,
+  "eof": "true"
+}

@@ -1,0 +1,36 @@
+import os, string, re, glob, shutil
+import pandas as pd
+
+configfile: "config/config.json"
+
+#===============================================================================
+# Config Variables
+DataFolder = config['DataFolder']
+#-------------------------------------------------------------------------------
+
+
+#===============================================================================
+# Samples
+# class parse_raw_data(self, filename, mate_1, mate_2):
+
+samplesheet = config["SampleSheet"]
+print(samplesheet)
+metadata = pd.read_csv(samplesheet, sep="\t", names=["samples"])
+samples = metadata['samples'].tolist()
+print(samples)
+
+wildcard_constraints:
+    sample = "|".join(samples)
+
+#-------------------------------------------------------------------------------
+#
+
+rule all:
+   input: "results/02_kmertable/split_aa" # "results/03_kmerscores/split_aa.csv",
+     #expand("results/01_kmercounting/merged/{sample}_kmers.txt",
+     #       sample = samples)
+
+include: "rules/kmer_counting.smk"
+include: "rules/concatenate_dataframes.smk"
+include: "rules/split_csv.smk"
+include: "rules/calculate_score.smk"
