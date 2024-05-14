@@ -1,0 +1,126 @@
+---
+output: html_document
+title: RNA-seq analysis report 
+
+params:
+    Project: "X"
+    Group: "X"
+    Analyst: "X"
+    fastqc_version: "X" 
+    rseqc_version: "X"
+    hisat_version: "X"
+    featureCounts_version: "X"
+    annotation: "X"
+    contrasts: "X"
+    mapStats: "X"
+    design: "X"
+    pca: "X"
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r results='hide', message=FALSE, warning=FALSE, echo=FALSE}
+library(biomaRt)
+library(knitr)
+library(htmltools)
+library(readr)
+```
+
+
+RNA-seq experiment `r params$Project` from `r params$Group` group. Analysis by `r params$Analyst`, completed on `r Sys.Date()`  
+
+***
+
+### 1) Description of analysis workflow  
+
+The quality of the RNA-seq data was assessed using fastqc v. `r params$fastqc_version` ^1)^ and RSeQC v. `r params$rseqc_version` ^2)^.  The reads were mapped to the reference genome using HiSat2 v. `r params$hisat_version` ^3)^. FeatureCounts v. `r params$featureCounts_version` ^4)^ was used to count the number of reads overlapping with each gene as specified in the genome annotation (`r params$annotation`). 
+
+`r if(params$contrasts != "none"){"The Bioconductor package DESeq2 ^5)^ was used to test for differential gene expression between the experimental groups. "}`
+`r if(params$contrasts == "full"){"TopGo ^6)^ was used to identify gene ontology terms containing unusually many differentially expressed genes. Gene set enrichment analysis (GSEA) was run in ClusterProfiler v4.0.2 using genesets from KEGG and MSigDb. An interactive Shiny application was set up to facilitate the exploration and visualisation of the RNA-seq results. All analyses were run in "}``r if(params$contrasts == "full") R.version$version.string` 
+`r if(params$contrasts == "kegg"){"Gene set enrichment analysis (GSEA) was run in ClusterProfiler v4.0.2 using genesets from KEGG and MSigDb. An interactive Shiny application was set up to facilitate the exploration and visualisation of the RNA-seq results. All analyses were run in "}``r if(params$contrasts == "kegg") R.version$version.string` 
+    
+
+
+**References**  
+1.	http://www.bioinformatics.babraham.ac.uk/projects/fastqc/  
+2.	Wang, L., Wang, S., & Li, W. (2012) RSeQC: quality control of RNA-seq experiments. Bioinformatics, 28(16): 2184-2185  
+3.	Kim D, Langmead B and Salzberg SL. (2015) HISAT: a fast spliced aligner with low memory requirements. Nature Methods, 12(4): 357-360  
+4.	Liao Y, Smyth GK and Shi W (2014) featureCounts: an efficient general purpose program for assigning sequence reads to genomic features. Bioinformatics, 30(7): 923-30  
+`r if(params$contrasts != "none"){"5. Love, M.I., Huber, W., & Anders, S. (2014) Moderated estimation of fold change and dispersion for RNA-seq data with DESeq2. Genome Biology, 15:550"}`  
+`r if(params$contrasts != "none"){"6.	Alexa A and Rahnenfuhrer J (2016). topGO: Enrichment Analysis for Gene Ontology. R package version 2.24.0."}`  
+
+
+***
+
+<!--Display a table of the experimental groups in case pairwise contrasts were run-->
+
+`r if(params$contrasts != "none"){"### 2) Experimental design"}`
+
+
+```{r echo=FALSE}
+design <- read.table(params$design, header=FALSE, sep="\t")
+design_summary <- as.data.frame(table(design$V2))
+colnames(design_summary) <- c("Experimental group", "Number of replicates")
+
+```
+`r if(params$contrasts != "none"){"Table: Summary of the number of samples in each experimental group."}`
+`r if(params$contrasts != "none") { kable(design_summary)}`    
+
+
+***
+
+
+`r if(params$contrasts != "none"){"### 3) Quality control"} else {"### 2) Quality control"}`  
+
+`r if(params$contrasts != "none"){"#### 3.1. Number of reads and mapping statistics"} else {"#### 2.1. Number of reads and mapping statistics"}`
+
+Table summarising the total number of reads obtained per sample (Nbr reads), the overall proportion of reads that could be mapped to the reference genome (% mapped), the number of multimapped reads (Nbr multi-mapped) and the number of reads overlapping with genes in the annotation (Nbr genic).
+
+For species with relatively complete reference genomes, like human or mouse, we expect mapping rates of >= 80%. Multi-mapped reads are reads that match multiple positions in the reference genome, for example reads from ribosomal RNA genes.
+
+```{r echo=FALSE, message=FALSE}
+mapStats <- read_delim(params$mapStats, delim="\t")
+kable(mapStats)
+
+```
+
+
+***
+
+
+`r if(params$contrasts != "none"){"#### 3.2. Principal component analysis (PCA)"} else {"#### 2.2. Principal component analysis (PCA)"}`
+
+Plot of the first two axes from a PCA based on the 500 most variable genes. Experimental groups are indicated by colours. We expect that samples from the same experimental group should have similar gene expression profiles and, consequently, should be near each other in the plot. 
+
+[This article](https://www.nature.com/articles/nbt0308-303) provides more background information on PCA.
+
+```{r echo=FALSE, out.width="800px", out.height="800px"}
+include_graphics(params$pca)
+```
+
+
+****
+
+
+`r if(params$contrasts != "none"){"#### 4. Overview of results"} else {"#### 3. Overview of results"}`
+
+In your results folder, you will find the following files:
+
+
+`r if(params$contrasts != "none"){"* a folder __documentation__ containing more background information on the analysis and the various output files"}`
+`r if(params$contrasts != "none"){"* a folder __de_results__ containing Excel tables with the results from the differential gene expression analysis. There is one file per comparison. Please refer to documentation/RNAseq_AnalysisStepsAndOutput.pdf for more information."}`
+`r if(params$contrasts == "full"){"* a folder __go_analysis__ containing the results from the gene ontology enrichment analysis. Please refer to documentation/GOEnrichment_AnalysisStepsAndOutput.pdf for more information."}`
+`r if(params$contrasts == "full" | params$contrast == "kegg"){"* a folder __gsea_analysis__ containing the results from the gene set enrichment analysis (KEGG pathways and MSigDB hallmark gene sets (if available)). Please refer to documentation/GSEAEnrichment_AnalysisStepsAndOutput.pdf for more information."}`
+* a folder __extended__ containing the table of counts in case you want to run your own analyses
+
+****
+
+
+
+
+
+
+

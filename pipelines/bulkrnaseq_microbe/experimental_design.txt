@@ -1,0 +1,10 @@
+LMB2_D1	control
+LMB2_D2	control
+LMB2_D4	control
+LMB2_D5	control
+LMB2_D6	control
+LMB2_M1	MBOA
+LMB2_M2	MBOA
+LMB2_M3	MBOA
+LMB2_M5	MBOA
+LMB2_M7	MBOA

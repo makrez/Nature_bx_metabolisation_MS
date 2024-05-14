@@ -1,0 +1,186 @@
+# HOW TO LAUNCH ON THE CLUSTER
+# # /opt/cluster/software/Conda/miniconda/3/bin/snakemake --printshellcmds --use-singularity --singularity-args "--bind /data" --drmaa " --ntasks=1 --mem={resources.mem_mb} --cpus-per-task={threads} --time={resources.hours}:0" --latency-wait 300 --jobs 1 --jobname <pXXX>_{jobid} --configfile config/config.json
+
+
+import os, re, glob, sys, string
+from scripts.snakefile_imports import *
+
+# if configfile is specified here, only part is overwritten by --configfile in the snakemake call
+# i.e. read directory is overwritten, pairedness not
+# probably because the configfile specified at --configfile only takes effect in the rules, not in the snakefile
+# commented for now:
+configfile: "config/config.json"
+
+# declaring objects
+delim="_"
+start=1
+end=int(config["sampleName"]["end"])
+extension=config["extension"]
+mate1=config["mates"]["mate1"]
+fastqfolder=config["fastqFolder"]
+mates=sorted(list(config["mates"].values()), key=str.lower)
+# print(mates)
+# print(config["mates"])
+print(config['fastqFolder'])
+
+# run imported functions
+infoList=getInfo(config["fastqFolder"], extension, delim, start, end, mate1)
+
+FileBasename=infoList[0]
+SampleNames=infoList[1]
+print(SampleNames)
+FilesPerSample=infoList[2]
+
+# check for empty dict values:
+for v in FilesPerSample.values():
+	if len(v) == 0:
+		sys.exit('''
+		Could not find fastq files! Are your file names according to the specified format?
+		Check: https://shiny.bioinformatics.unibe.ch/hts_RNASeqPipeline_Slurm_v.2.2.5/images/SampleNames.html
+		''')
+
+# define contrasts
+if config["contrastFile"] == "":
+	contrasts = Contrasts(config["expDesignFile"])
+else:
+	contrasts = readContrasts(config["contrastFile"])
+
+
+# infer strandedness setting from kit
+# strand = infer_strandedness(config["kit"])
+# if not strand in [0,1,2]:
+# 	sys.exit("Strandedness is not correctly specified. Must be one of [0, 1, 2], where 0=unstranded, 1=forward, 2=reverse")
+
+
+# Check that all required input files exist:
+
+checkFileExists([config["gtf"], config["expDesignFile"]])
+checkRpath(config["R_path"])
+
+# Check that all hisat2 index files exist:
+
+checkHisat2Indexes(config["reference"])
+
+## Check that the fastq files are consistently named with no special characters other than delim and in particular NOT
+## starting with a number. Additionally, check that all sample names are consistent with expDesignFile table
+
+expDesignIDs = getExpDesignIDs(config["expDesignFile"], delim)
+
+fileIDs=getfileIDs(config["fastqFolder"], extension, delim, start, end)
+
+if not expDesignIDs == fileIDs:
+	comm1 = ["Your IDs in the experimental design look like:"]
+	comm2 = ["While the IDs based on the fastq files look like this:"]
+	comm3 = ["Check that the sample IDs in the experimental design file match the file names!"]
+	sys.exit('\n'.join(comm1 + expDesignIDs + comm2 + fileIDs + comm3))
+
+
+# 2. Check that the sampleName is correct. It cannot contain any special characters other than delim AND
+# it cannot start with a number
+
+checkSpecialCharacters(expDesignIDs)
+
+
+# Check experimental design file
+checkDesign(config["expDesignFile"], config["expdesign"])
+
+# init for table object 
+# this is to work around empty GO tables
+tablelist = ['init']
+
+rule all:
+	input:
+		"results/done.txt"
+
+# if the kit is Truseq:
+# no UMIs so: workflow: cutadapt > alignment > sorting > counting 
+# meaning that cutadapt reads directly from raw files
+# featurecount reads directly from coordinate sorted 
+# strandedness is 2
+# pairedness during alignment is handled by the hisat2 rule itself
+# dedup_stats_in is necessary for kits with UMIs to ensure dedup step runs to completion. Here, we just use the Hisat2 checkfile as a placeholder
+
+if config["kit"] == 'Truseq':
+	cutadapt_in = config["fastqFolder"]
+	featureCounts_in = 'results/coord_sorted/{sample}.coordSorted.bam'
+	dedup_stats_in = 'logs/hisat2/{sample}.checkfile.txt'
+	strand = 2
+	if len(mates) == 2:
+		include: "rules/cutadapt_paired.smk"
+	if len(mates) == 1:
+		include: "rules/cutadapt_single.smk"
+
+# if the kit is Takara:
+# with UMIs so: workflow: umi_extraction > cutadapt > alignment > sorting > deduplication > counting 
+# meaning that cutadapt reads reads from fastq with extracted UMIs
+# featurecount reads from deduplicated bam
+# strandedness is 2
+# reads are always paired, so no exception for single end
+# dedup_stats_in is used as a checkfile to ensure dedup ran to completion
+
+if config["kit"] == 'Takara':
+	strand = 2
+	cutadapt_in = 'results/extract_umi/'
+	featureCounts_in = 'results/dedup/{sample}.deduplicated.bam'
+	dedup_stats_in = 'results/dedup/{sample}.deduplication.stats_per_umi.tsv'
+	include: "rules/extract_umi_TAKARA_KIT.smk"
+	include: "rules/cutadapt_paired.smk"
+	include: "rules/dedup.smk"
+
+# if the kit is Corall:
+# with UMIs so: workflow: umi_extraction > cutadapt > alignment > sorting > deduplication > counting 
+# meaning that cutadapt reads reads from fastq with extracted UMIs
+# featurecount reads from deduplicated bam
+# strandedness is 1
+# pairedness during alignment is handled by the hisat2 rule itself
+# dedup_stats_in is used as a checkfile to ensure dedup ran to completion
+
+if config["kit"] == 'Corall':
+	strand = 1
+	cutadapt_in = 'results/extract_umi/'
+	featureCounts_in = 'results/dedup/{sample}.deduplicated.bam'
+	dedup_stats_in = 'results/dedup/{sample}.deduplication.stats_per_umi.tsv'
+	include: "rules/dedup.smk"
+	if len(mates) == 2:
+		include: "rules/extract_umi_CORALL_KIT_paired.smk"
+		include: "rules/cutadapt_paired.smk"
+	if len(mates) == 1:
+		include: "rules/extract_umi_CORALL_KIT_single.smk"
+		include: "rules/cutadapt_single.smk"
+
+
+include: "rules/fastqc.smk"
+include: "rules/hisat2.smk"
+include: "rules/samtools_sortByCoord.smk"
+include: "rules/samtools_extractUnmapped.smk"
+include: "rules/featureCounts.smk"
+include: "rules/biomart_table_deseq.smk"
+include: "rules/DESeq2.smk"
+include: "rules/rseqc.smk"
+include: "rules/biomart_table_biotypeplot.smk"
+include: "rules/biotype_plot.smk"
+include: "rules/html_internal_report.smk"
+include: "rules/html_customer_report.smk"
+include: "rules/check_files.smk"
+include: "rules/parse_map_stats.smk"
+include: "rules/customer_files.smk"
+
+if config["includeContrasts"] == 'full':
+	include: "rules/DESeq2_contrasts.smk"
+	include: "rules/TopGo.smk"
+	include: "rules/gsea.smk"
+	include: "rules/ShinyInput.smk"
+	
+if config["includeContrasts"] == 'kegg':
+	include: "rules/DESeq2_contrasts.smk"
+	include: "rules/gsea.smk"
+	include: "rules/ShinyInput_withoutTopGo.smk"
+
+if config["includeGeneCov"] == 'yes':
+	include: "rules/rseqc_geneBodyCoverage.smk"
+
+if len(mates) == 2:
+	include: "rules/rseqc_inner_distance.smk"
+
+include: "rules/final_cleanup.smk"
+include: "rules/backup.smk"

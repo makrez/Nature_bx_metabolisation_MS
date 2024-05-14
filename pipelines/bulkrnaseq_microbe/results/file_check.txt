@@ -1,0 +1,11 @@
+The following fastq files are detected for each sample:
+('LMB2_D1_', ['LMB2_D1_'])
+('LMB2_D2_', ['LMB2_D2_'])
+('LMB2_D4_', ['LMB2_D4_'])
+('LMB2_D5_', ['LMB2_D5_'])
+('LMB2_D6_', ['LMB2_D6_'])
+('LMB2_M1_', ['LMB2_M1_'])
+('LMB2_M2_', ['LMB2_M2_'])
+('LMB2_M3_', ['LMB2_M3_'])
+('LMB2_M5_', ['LMB2_M5_'])
+('LMB2_M7_', ['LMB2_M7_'])

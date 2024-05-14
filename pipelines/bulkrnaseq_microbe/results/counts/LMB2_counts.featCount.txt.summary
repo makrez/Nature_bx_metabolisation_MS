@@ -1,0 +1,15 @@
+Status	results/coord_sorted/LMB2_D1_.coordSorted.bam	results/coord_sorted/LMB2_D2_.coordSorted.bam	results/coord_sorted/LMB2_D4_.coordSorted.bam	results/coord_sorted/LMB2_D5_.coordSorted.bam	results/coord_sorted/LMB2_D6_.coordSorted.bam	results/coord_sorted/LMB2_M1_.coordSorted.bam	results/coord_sorted/LMB2_M2_.coordSorted.bam	results/coord_sorted/LMB2_M3_.coordSorted.bam	results/coord_sorted/LMB2_M5_.coordSorted.bam	results/coord_sorted/LMB2_M7_.coordSorted.bam
+Assigned	3042889	2485189	2628906	3117791	2538604	4860580	2675072	2828834	2572670	2856289
+Unassigned_Unmapped	23336	60030	15458	14336	21648	17539	177340	16088	33686	18537
+Unassigned_Read_Type	0	0	0	0	0	0	0	0	0	0
+Unassigned_Singleton	0	0	0	0	0	0	0	0	0	0
+Unassigned_MappingQuality	94255	101644	116711	61499	47795	27625	73155	43731	80480	73555
+Unassigned_Chimera	216133	156215	55225	103879	136511	258377	38391	66445	19133	31008
+Unassigned_FragmentLength	0	0	0	0	0	0	0	0	0	0
+Unassigned_Duplicate	0	0	0	0	0	0	0	0	0	0
+Unassigned_MultiMapping	17898337	16313280	17747436	16942316	15796240	9246619	17584277	15243965	16821157	19508043
+Unassigned_Secondary	0	0	0	0	0	0	0	0	0	0
+Unassigned_NonSplit	0	0	0	0	0	0	0	0	0	0
+Unassigned_NoFeatures	989556	692968	681503	1043931	925002	3612828	1228470	1440918	151767	84456
+Unassigned_Overlapping_Length	0	0	0	0	0	0	0	0	0	0
+Unassigned_Ambiguity	174828	110144	102869	162290	131823	488851	143208	204946	112442	128027

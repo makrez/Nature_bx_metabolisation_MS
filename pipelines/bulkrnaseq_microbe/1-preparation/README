@@ -1,0 +1,30 @@
+###########################################################
+# prep before running the RNAseq pipeline                 #
+###########################################################
+
+
+Requirements:
+- Referenence in fasta format (foo.fna)
+- Gene annotation in gbk or gff (prefered!) format
+
+
+[ only run this step if you don't have a gff file at hand ]
+Step 0: convert gbk to gff3
+$ ./convert_genbank_to_gff3.py -i ../reference/CK06.gbk -o CK06.gff 1>warnings.tx
+
+Step 1: convert gff3 to gtf to bed
+Install AGAT: https://github.com/NBISweden/AGAT e.g. using bioconda
+$ agat_convert_sp_gff2gtf.pl --gff foo.gff -o foo.gtf
+$ gtf2bed.pl foo.gtf > foo.bed
+
+Step 2: create hisat index of reference genome
+$ module add UHTS/Aligner/hisat/2.2.1;
+$ hisat2-build foo.fsa foo
+
+Step 3: create a features file from your gff3 file
+NOTE: you will need python3.7 for this script to run 
+$ python3 extract_genesymbol_from_gff.py --gff foo.gff
+
+If you work with prokka annotatations use 
+$ python3 extract_genesymbol_from_prokka_gff.py --gff foo.gff
+

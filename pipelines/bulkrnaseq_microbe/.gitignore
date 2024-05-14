@@ -1,0 +1,6 @@
+results/coord_sorted/*
+results/fastqc/*.zip
+results/fastqc/*/*
+results/cutadapt/*
+results/unmapped/LMB2_*
+results/rseqc/*

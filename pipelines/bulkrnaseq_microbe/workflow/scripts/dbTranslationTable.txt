@@ -1,0 +1,27 @@
+topgo_db	kegg_organism	msigdb_species
+org.Ag.eg.db	aga	
+	acs	Anolis carolinensis
+org.At.tair.db	ath	
+org.Bt.eg.db	bta	Bos taurus
+org.Ce.eg.db	cel	Caenorhabditis elegans
+org.Cf.eg.db	cfa	Canis lupus familiaris
+org.Dm.eg.db	dme	Drosophila melanogaster
+org.Dr.eg.db	der	Danio rerio
+org.EcK12.eg.db	eco	
+org.EcSakai.eg.db	ecs	
+	ecb	Equus caballus
+	fca	Felis catus
+org.Gg.eg.db	gga	Gallus gallus
+org.Hs.eg.db	hsa	Homo sapiens
+org.Mm.eg.db	mmu	Mus musculus
+org.Mmu.eg.db	mcc	Macaca mulatta
+	mdo	Monodelphis domestica
+org.Mxanthus.db	mxa	
+org.Pf.plasmo.db	pfa	
+	oaa	Ornithorhynchus anatinus
+org.Pt.eg.db	ptr	Pan troglodytes
+org.Rn.eg.db	rno	Rattus norvegicus
+org.Sc.sgd.db	sce	Saccharomyces cerevisiae
+	spo	Schizosaccharomyces pombe
+org.Ss.eg.db	ssc	Sus scrofa
+org.Xl.eg.db	xla	Xenopus tropicalis
